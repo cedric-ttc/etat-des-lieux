@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>État des lieux avant travaux</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #1a56db;
+    --blue-light: #e8f0fe;
+    --blue-mid: #3b82f6;
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --amber: #d97706;
+    --amber-light: #fef3c7;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  html, body { height: 100%; font-family: var(--font); background: var(--gray-50); color: var(--gray-900); font-size: 15px; }
+
+  /* TOP BAR */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: white; border-bottom: 1px solid var(--gray-200);
+    padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar-logo { width: 32px; height: 32px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .topbar-logo svg { width: 18px; height: 18px; fill: white; }
+  .topbar h1 { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+  .topbar-sub { font-size: 12px; color: var(--gray-400); font-family: var(--mono); }
+
+  /* PROGRESS */
+  .progress-wrap { background: var(--gray-200); height: 3px; }
+  .progress-bar { height: 3px; background: var(--blue); transition: width .4s ease; }
+
+  /* STEP TABS */
+  .step-tabs { display: flex; gap: 0; background: white; border-bottom: 1px solid var(--gray-200); padding: 0 20px; overflow-x: auto; }
+  .step-tab { padding: 12px 18px; font-size: 13px; font-weight: 500; color: var(--gray-400); border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; transition: all .2s; }
+  .step-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .step-tab.done { color: var(--green); }
+  .step-tab.done::before { content: '✓ '; }
+
+  /* MAIN */
+  .main { max-width: 860px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  /* SECTION */
+  .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--gray-400); margin-bottom: 10px; margin-top: 24px; }
+
+  /* CARD */
+  .card { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .span-2 { grid-column: span 2; }
+
+  /* FIELDS */
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 12px; font-weight: 500; color: var(--gray-600); }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 9px 12px; font-size: 14px;
+    border: 1px solid var(--gray-200); border-radius: var(--radius-sm);
+    background: var(--gray-50); color: var(--gray-900); font-family: var(--font);
+    outline: none; transition: border-color .15s, background .15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--blue-mid); background: white; box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+  }
+  .field textarea { min-height: 72px; resize: vertical; line-height: 1.5; }
+
+  /* ROOM TABS */
+  .room-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .room-tab {
+    padding: 8px 16px; font-size: 13px; font-weight: 500;
+    border: 1px solid var(--gray-200); border-radius: 20px;
+    background: white; color: var(--gray-600); cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .room-tab:hover { border-color: var(--blue-mid); color: var(--blue); }
+  .room-tab.active { background: var(--blue); color: white; border-color: var(--blue); }
+  .room-tab.done { border-color: var(--green); color: var(--green); background: var(--green-light); }
+  .room-tab.active.done { background: var(--blue); color: white; border-color: var(--blue); }
+  .room-tab .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .6; }
+
+  /* ELEM TABLE */
+  .elem-header { display: grid; grid-template-columns: 1fr 100px 1fr; gap: 8px; padding: 6px 0 8px; border-bottom: 1px solid var(--gray-200); margin-bottom: 4px; }
+  .elem-header span { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--gray-400); }
+  .elem-row { display: grid; grid-template-columns: 1fr 100px 1fr; gap: 8px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--gray-100); }
+  .elem-row:last-child { border-bottom: none; }
+  .elem-name { font-size: 13px; color: var(--gray-700); line-height: 1.4; }
+  .elem-row select { font-size: 13px; padding: 6px 8px; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); background: var(--gray-50); color: var(--gray-900); font-family: var(--font); outline: none; cursor: pointer; }
+  .elem-row select:focus { border-color: var(--blue-mid); }
+  .elem-row input[type=text] { font-size: 13px; padding: 6px 8px; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); background: var(--gray-50); color: var(--gray-900); font-family: var(--font); outline: none; width: 100%; }
+  .elem-row input[type=text]:focus { border-color: var(--blue-mid); background: white; }
+
+  /* ETAT COLORS */
+  select.etat-tb { background: var(--green-light) !important; color: var(--green) !important; font-weight: 600; border-color: #86efac !important; }
+  select.etat-b { background: var(--blue-light) !important; color: var(--blue) !important; font-weight: 600; border-color: #93c5fd !important; }
+  select.etat-mo { background: var(--amber-light) !important; color: var(--amber) !important; font-weight: 600; border-color: #fcd34d !important; }
+  select.etat-hs { background: var(--red-light) !important; color: var(--red) !important; font-weight: 600; border-color: #fca5a5 !important; }
+
+  /* PHOTOS */
+  .photo-section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--gray-400); margin: 20px 0 10px; padding-top: 16px; border-top: 1px solid var(--gray-100); }
+  .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .photo-cell {
+    border: 1.5px dashed var(--gray-300); border-radius: var(--radius);
+    background: var(--gray-50); cursor: pointer; transition: all .15s;
+    min-height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; padding: 10px; position: relative; overflow: hidden;
+  }
+  .photo-cell:hover { border-color: var(--blue-mid); background: var(--blue-light); }
+  .photo-cell.filled { border-style: solid; border-color: var(--green); background: white; justify-content: flex-start; }
+  .photo-cell .add-icon { font-size: 22px; color: var(--gray-400); line-height: 1; }
+  .photo-cell .add-txt { font-size: 12px; color: var(--gray-400); text-align: center; }
+  .photo-cell img { width: 100%; height: 90px; object-fit: cover; border-radius: 6px; display: block; }
+  .photo-cell .cap-input { width: 100%; font-size: 11px; padding: 4px 6px; border: 1px solid var(--gray-200); border-radius: 4px; background: white; font-family: var(--font); color: var(--gray-700); margin-top: 4px; outline: none; }
+  .photo-cell .del-photo { position: absolute; top: 5px; right: 5px; background: rgba(255,255,255,.9); border: 1px solid var(--gray-200); border-radius: 4px; padding: 2px 6px; font-size: 11px; color: var(--red); cursor: pointer; }
+  .photo-cell input[type=file] { display: none; }
+
+  /* LEGEND */
+  .legend-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .legend-item { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 500; }
+  .leg-tb { background: var(--green-light); color: var(--green); }
+  .leg-b { background: var(--blue-light); color: var(--blue); }
+  .leg-mo { background: var(--amber-light); color: var(--amber); }
+  .leg-hs { background: var(--red-light); color: var(--red); }
+  .leg-nv { background: var(--gray-100); color: var(--gray-600); }
+  .leg-na { background: var(--gray-100); color: var(--gray-400); }
+
+  /* BUTTONS */
+  .btn-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; }
+  .btn { padding: 10px 22px; font-size: 14px; font-weight: 500; border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font); border: 1px solid var(--gray-200); background: white; color: var(--gray-700); transition: all .15s; }
+  .btn:hover { background: var(--gray-100); }
+  .btn:active { transform: scale(.98); }
+  .btn-primary { background: var(--blue); color: white; border-color: var(--blue); }
+  .btn-primary:hover { background: #1648c0; }
+  .btn-success { background: var(--green); color: white; border-color: var(--green); }
+  .btn-success:hover { background: #15803d; }
+
+  /* STEP VISIBILITY */
+  .step { display: none; }
+  .step.active { display: block; }
+
+  /* SUMMARY */
+  .summary-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .summary-info-item { background: var(--gray-50); border-radius: var(--radius-sm); padding: 10px 14px; }
+  .summary-info-item .lbl { font-size: 11px; color: var(--gray-400); margin-bottom: 2px; }
+  .summary-info-item .val { font-size: 14px; font-weight: 500; color: var(--gray-900); }
+  .summary-room { margin-bottom: 12px; border: 1px solid var(--gray-200); border-radius: var(--radius); overflow: hidden; }
+  .summary-room-header { background: var(--gray-50); padding: 10px 16px; font-size: 13px; font-weight: 600; color: var(--gray-700); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gray-200); }
+  .summary-room-body { padding: 0 16px; }
+  .summary-elem-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--gray-100); font-size: 13px; }
+  .summary-elem-row:last-child { border-bottom: none; }
+  .summary-elem-name { color: var(--gray-700); flex: 1; }
+  .summary-elem-right { display: flex; align-items: center; gap: 8px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-tb { background: var(--green-light); color: var(--green); }
+  .badge-b { background: var(--blue-light); color: var(--blue); }
+  .badge-mo { background: var(--amber-light); color: var(--amber); }
+  .badge-hs { background: var(--red-light); color: var(--red); }
+  .badge-nv { background: var(--gray-100); color: var(--gray-600); }
+  .badge-na { background: var(--gray-100); color: var(--gray-400); }
+  .summary-obs { font-size: 11px; color: var(--gray-400); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .photo-thumb-row { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 0; }
+  .photo-thumb { width: 56px; height: 42px; object-fit: cover; border-radius: 5px; border: 1px solid var(--gray-200); }
+
+  .export-tip { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius); padding: 14px 18px; font-size: 13px; color: #1e40af; margin-top: 16px; line-height: 1.6; }
+  .export-tip strong { font-weight: 600; }
+
+  /* PRINT */
+  @media print {
+    .topbar, .step-tabs, .progress-wrap, .btn-row, .room-tabs, .export-tip, .del-photo { display: none !important; }
+    .step { display: block !important; }
+    #step1, #step2 { display: none !important; }
+    body { background: white; font-size: 12px; }
+    .main { padding: 0; max-width: 100%; }
+    .card { border: 1px solid #ddd; margin-bottom: 12px; padding: 12px; break-inside: avoid; }
+    .summary-room { break-inside: avoid; }
+    .photo-thumb { width: 80px; height: 60px; }
+  }
+
+  @media (max-width: 600px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .span-2 { grid-column: span 1; }
+    .photo-grid { grid-template-columns: 1fr 1fr; }
+    .elem-row { grid-template-columns: 1fr 80px; }
+    .elem-row input[type=text] { display: none; }
+    .elem-header { grid-template-columns: 1fr 80px; }
+    .elem-header span:last-child { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    </div>
+    <div>
+      <div class="topbar h1" style="font-size:15px;font-weight:600;">État des lieux avant travaux</div>
+      <div class="topbar-sub" id="header-ref">Nouveau dossier</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:var(--gray-400);" id="step-counter">Étape 1 / 3</div>
+</div>
+<div class="progress-wrap"><div class="progress-bar" id="prog" style="width:33%"></div></div>
+
+<div class="step-tabs">
+  <div class="step-tab active" id="tab1" onclick="goStep(1)">1. Informations</div>
+  <div class="step-tab" id="tab2" onclick="goStep(2)">2. Pièces & Photos</div>
+  <div class="step-tab" id="tab3" onclick="goStep(3)">3. Récapitulatif</div>
+</div>
+
+<div class="main">
+
+  <!-- STEP 1 -->
+  <div class="step active" id="step1">
+    <div class="section-label">Identification du logement</div>
+    <div class="card">
+      <div class="grid-2">
+        <div class="field span-2"><label>Adresse complète du logement</label><input type="text" id="adresse" placeholder="ex : 12 rue des Lilas, 7000 Mons"></div>
+        <div class="field"><label>Nom du locataire / propriétaire</label><input type="text" id="locataire" placeholder="Nom Prénom"></div>
+        <div class="field"><label>Nom de l'intervenant</label><input type="text" id="intervenant" placeholder="Nom Prénom"></div>
+        <div class="field"><label>Date de l'état des lieux</label><input type="date" id="date_edl"></div>
+        <div class="field"><label>Heure</label><input type="time" id="heure_edl"></div>
+        <div class="field"><label>Référence dossier</label><input type="text" id="ref_dossier" placeholder="ex : EDL-2025-001" oninput="updateRef()"></div>
+        <div class="field"><label>Type de travaux prévus</label><input type="text" id="travaux" placeholder="ex : Rénovation complète"></div>
+        <div class="field"><label>Étage / Bâtiment</label><input type="text" id="etage" placeholder="ex : 2ème étage, Bât. A"></div>
+        <div class="field"><label>Surface approximative (m²)</label><input type="number" id="surface" placeholder="ex : 65"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <div></div>
+      <button class="btn btn-primary" onclick="goStep(2)">Suivant : Pièces & Photos →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step" id="step2">
+    <div class="room-tabs" id="room-tabs"></div>
+    <div class="card" id="room-body"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="goStep(1)">← Retour</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Suivant : Récapitulatif →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step" id="step3">
+    <div class="section-label">Récapitulatif complet</div>
+    <div class="card">
+      <div class="summary-info-grid" id="summary-info"></div>
+    </div>
+    <div id="summary-rooms"></div>
+    <div class="card">
+      <div class="field"><label style="font-size:13px;font-weight:600;color:var(--gray-700);">Observations générales</label>
+        <textarea id="obs_gen" placeholder="Remarques complémentaires, points d'attention particuliers..."></textarea>
+      </div>
+    </div>
+    <div class="section-label">Signatures</div>
+    <div class="card">
+      <div class="grid-2">
+        <div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:12px;color:var(--gray-700);">Intervenant / Technicien</div>
+          <div style="font-size:13px;color:var(--gray-500);margin-bottom:4px;">Nom : <span id="sig-intervenant"></span></div>
+          <div style="border-top:1.5px solid var(--gray-300);margin-top:60px;padding-top:6px;font-size:11px;color:var(--gray-400);">Signature</div>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:12px;color:var(--gray-700);">Locataire / Propriétaire</div>
+          <div style="font-size:13px;color:var(--gray-500);margin-bottom:4px;">Nom : <span id="sig-locataire"></span></div>
+          <div style="border-top:1.5px solid var(--gray-300);margin-top:60px;padding-top:6px;font-size:11px;color:var(--gray-400);">Signature</div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="goStep(2)">← Retour</button>
+      <button class="btn btn-success" onclick="exportPDF()">&#128438; Enregistrer en PDF</button>
+    </div>
+    <div class="export-tip">
+      <strong>Comment enregistrer en PDF&nbsp;?</strong><br>
+      Appuyez sur le bouton ci-dessus → dans la boîte qui s'ouvre, choisissez <strong>"Enregistrer en PDF"</strong> (ou "Save as PDF") comme destination d'impression, puis confirmez.
+    </div>
+  </div>
+
+</div>
+
+<script>
+const ROOMS = [
+  { id:'entree', name:'Entrée / Couloir', elems:["Porte d'entrée (état, serrure, joints)","Sol (revêtement, état général)","Murs (peinture, fissures, humidité)","Plafond (état, taches, fissures)","Luminaire / éclairage","Interphone / sonnette","Prises électriques / interrupteurs","Placards / rangements","Radiateur","Ventilation"] },
+  { id:'sejour', name:'Séjour / Salon', elems:["Sol (revêtement, état général)","Murs (peinture, fissures, humidité)","Plafond (état, taches)","Fenêtres / double vitrage (état, joints)","Volets / stores","Radiateur","Prises électriques / interrupteurs","Luminaire / éclairage","Cheminée / insert (si existant)","Ventilation / VMC"] },
+  { id:'cuisine', name:'Cuisine', elems:["Sol (revêtement, état général)","Murs / carrelage (état, joints)","Plafond (état)","Fenêtre / vitrage","Placards / meubles hauts et bas","Plan de travail","Évier (état, robinetterie, écoulement)","Hotte / ventilation","Prises électriques / interrupteurs","Tableau électrique / fusibles","Chauffe-eau / cumulus","Alimentation gaz (si existant)"] },
+  { id:'chambre', name:'Chambre(s)', elems:["Sol (revêtement, état général)","Murs (peinture, humidité, fissures)","Plafond (état)","Fenêtre / double vitrage (état, joints)","Volets / stores","Radiateur","Prises électriques / interrupteurs","Luminaire / éclairage","Placards / dressing","Ventilation"] },
+  { id:'sdb', name:'Salle de bain / WC', elems:["Sol (carrelage, joints)","Murs / carrelage (état, joints)","Plafond (humidité, peinture)","Baignoire / douche (état, joints, robinetterie)","Lavabo (état, robinetterie, évacuation)","WC (état, chasse d'eau, joint de cuvette)","Miroir / armoire de toilette","Ventilation / VMC","Prises électriques / interrupteurs","Radiateur sèche-serviette","Fenêtre / aération"] },
+  { id:'cave', name:'Cave / Grenier', elems:["Accès / porte (état, serrure)","Sol (état général)","Murs / plafond (humidité, fissures)","Ventilation / aération","Éclairage","Réseau de canalisations visible","État général / propreté"] }
+];
+
+const ETATS = ['—','TB','B','MO','HS','NV','NA'];
+const ETAT_LABELS = {'TB':'Très bon','B':'Bon','MO':'Mauvais','HS':'Hors service','NV':'Non vérifié','NA':'Sans objet','—':'—'};
+const ETAT_CLASS = {'TB':'etat-tb','B':'etat-b','MO':'etat-mo','HS':'etat-hs','NV':'','NA':''};
+const BADGE_CLASS = {'TB':'badge-tb','B':'badge-b','MO':'badge-mo','HS':'badge-hs','NV':'badge-nv','NA':'badge-na','—':'badge-nv'};
+
+let currentRoom = 0;
+const data = { elems:{}, obs:{}, photos:{}, notes:{} };
+ROOMS.forEach(r => {
+  data.elems[r.id] = {};
+  data.obs[r.id] = {};
+  data.photos[r.id] = Array.from({length:6}, () => ({}));
+  data.notes[r.id] = '';
+  r.elems.forEach(e => { data.elems[r.id][e] = '—'; data.obs[r.id][e] = ''; });
+});
+
+function updateRef() {
+  const ref = document.getElementById('ref_dossier').value;
+  document.getElementById('header-ref').textContent = ref || 'Nouveau dossier';
+}
+
+function goStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.step-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+  document.getElementById('tab' + n).classList.add('active');
+  document.getElementById('step-counter').textContent = 'Étape ' + n + ' / 3';
+  document.getElementById('prog').style.width = (n / 3 * 100) + '%';
+  if (n === 2) renderRooms();
+  if (n === 3) renderSummary();
+  window.scrollTo(0,0);
+}
+
+function isDone(rid) {
+  return Object.values(data.elems[rid]).some(v => v !== '—') || data.photos[rid].some(p => p.src);
+}
+
+function renderRooms() {
+  const nav = document.getElementById('room-tabs');
+  nav.innerHTML = '';
+  ROOMS.forEach((r,i) => {
+    const d = isDone(r.id);
+    const btn = document.createElement('div');
+    btn.className = 'room-tab' + (i === currentRoom ? ' active' : '') + (d ? ' done' : '');
+    btn.innerHTML = `<span class="dot"></span>${r.name}`;
+    btn.onclick = () => { currentRoom = i; renderRooms(); };
+    nav.appendChild(btn);
+  });
+  renderRoomContent();
+}
+
+function renderRoomContent() {
+  const room = ROOMS[currentRoom];
+  const body = document.getElementById('room-body');
+  body.innerHTML = `<div style="font-size:15px;font-weight:600;color:var(--gray-900);margin-bottom:14px;">${room.name}</div>`;
+
+  // Legend
+  const leg = document.createElement('div');
+  leg.className = 'legend-bar';
+  leg.innerHTML = `<span class="legend-item leg-tb">TB = Très bon</span><span class="legend-item leg-b">B = Bon</span><span class="legend-item leg-mo">MO = Mauvais</span><span class="legend-item leg-hs">HS = Hors service</span><span class="legend-item leg-nv">NV = Non vérifié</span><span class="legend-item leg-na">NA = Sans objet</span>`;
+  body.appendChild(leg);
+
+  // Header
+  const hdr = document.createElement('div');
+  hdr.className = 'elem-header';
+  hdr.innerHTML = '<span>Élément</span><span>État</span><span>Observations</span>';
+  body.appendChild(hdr);
+
+  room.elems.forEach(e => {
+    const row = document.createElement('div');
+    row.className = 'elem-row';
+    const name = document.createElement('span');
+    name.className = 'elem-name'; name.textContent = e;
+    const sel = document.createElement('select');
+    ETATS.forEach(opt => {
+      const o = document.createElement('option');
+      o.value = opt; o.textContent = opt === '—' ? '—' : opt;
+      o.title = ETAT_LABELS[opt];
+      if (data.elems[room.id][e] === opt) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.className = ETAT_CLASS[data.elems[room.id][e]] || '';
+    sel.onchange = () => {
+      data.elems[room.id][e] = sel.value;
+      sel.className = ETAT_CLASS[sel.value] || '';
+      updateRoomTabDone();
+    };
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.placeholder = 'Notes...';
+    inp.value = data.obs[room.id][e];
+    inp.oninput = () => { data.obs[room.id][e] = inp.value; };
+    row.appendChild(name); row.appendChild(sel); row.appendChild(inp);
+    body.appendChild(row);
+  });
+
+  // Photos
+  const pt = document.createElement('div');
+  pt.className = 'photo-section-title';
+  pt.textContent = 'Reportage photographique';
+  body.appendChild(pt);
+
+  const pg = document.createElement('div');
+  pg.className = 'photo-grid';
+  for (let i = 0; i < 6; i++) {
+    const box = document.createElement('div');
+    box.id = `pb-${room.id}-${i}`;
+    box.className = 'photo-cell' + (data.photos[room.id][i].src ? ' filled' : '');
+    renderPhotoCell(box, room.id, i);
+    pg.appendChild(box);
+  }
+  body.appendChild(pg);
+
+  // Notes pièce
+  const nt = document.createElement('div');
+  nt.style = 'margin-top:16px;';
+  nt.innerHTML = `<div style="font-size:12px;font-weight:500;color:var(--gray-600);margin-bottom:6px;">Notes générales — ${room.name}</div>`;
+  const ta = document.createElement('textarea');
+  ta.className = 'field'; ta.style = 'width:100%;';
+  ta.placeholder = 'Observations supplémentaires pour cette pièce...';
+  ta.value = data.notes[room.id];
+  ta.oninput = () => { data.notes[room.id] = ta.value; };
+  ta.style = 'width:100%;padding:9px 12px;font-size:13px;border:1px solid var(--gray-200);border-radius:6px;background:var(--gray-50);min-height:60px;resize:vertical;font-family:var(--font);color:var(--gray-900);outline:none;';
+  nt.appendChild(ta);
+  body.appendChild(nt);
+}
+
+function renderPhotoCell(box, rid, i) {
+  box.innerHTML = '';
+  const ph = data.photos[rid][i];
+  if (ph.src) {
+    const del = document.createElement('span');
+    del.className = 'del-photo'; del.textContent = '✕ Supprimer';
+    del.onclick = (ev) => { ev.stopPropagation(); data.photos[rid][i] = {}; box.className = 'photo-cell'; renderPhotoCell(box, rid, i); updateRoomTabDone(); };
+    box.appendChild(del);
+    const img = document.createElement('img');
+    img.src = ph.src;
+    box.appendChild(img);
+    const cap = document.createElement('input');
+    cap.type = 'text'; cap.className = 'cap-input';
+    cap.placeholder = 'Légende de la photo...';
+    cap.value = ph.caption || '';
+    cap.oninput = () => { data.photos[rid][i].caption = cap.value; };
+    cap.onclick = (ev) => ev.stopPropagation();
+    box.appendChild(cap);
+  } else {
+    const fi = document.createElement('input');
+    fi.type = 'file'; fi.accept = 'image/*'; fi.capture = 'environment';
+    fi.onchange = (ev) => {
+      const file = ev.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        data.photos[rid][i] = { src: e.target.result, caption: '' };
+        box.className = 'photo-cell filled';
+        renderPhotoCell(box, rid, i);
+        updateRoomTabDone();
+      };
+      reader.readAsDataURL(file);
+    };
+    const ico = document.createElement('div'); ico.className = 'add-icon'; ico.textContent = '+';
+    const lbl = document.createElement('div'); lbl.className = 'add-txt'; lbl.textContent = 'Photo ' + (i+1);
+    box.appendChild(fi); box.appendChild(ico); box.appendChild(lbl);
+    box.onclick = () => fi.click();
+  }
+}
+
+function updateRoomTabDone() {
+  const tabs = document.querySelectorAll('.room-tab');
+  ROOMS.forEach((r,i) => {
+    if (isDone(r.id)) tabs[i].classList.add('done');
+    else tabs[i].classList.remove('done');
+  });
+}
+
+function renderSummary() {
+  const g = id => document.getElementById(id)?.value || '—';
+  document.getElementById('sig-intervenant').textContent = g('intervenant');
+  document.getElementById('sig-locataire').textContent = g('locataire');
+
+  document.getElementById('summary-info').innerHTML = `
+    <div class="summary-info-item"><div class="lbl">Adresse</div><div class="val">${g('adresse')}</div></div>
+    <div class="summary-info-item"><div class="lbl">Référence</div><div class="val">${g('ref_dossier')}</div></div>
+    <div class="summary-info-item"><div class="lbl">Locataire / propriétaire</div><div class="val">${g('locataire')}</div></div>
+    <div class="summary-info-item"><div class="lbl">Intervenant</div><div class="val">${g('intervenant')}</div></div>
+    <div class="summary-info-item"><div class="lbl">Date</div><div class="val">${g('date_edl')}</div></div>
+    <div class="summary-info-item"><div class="lbl">Travaux prévus</div><div class="val">${g('travaux')}</div></div>
+  `;
+
+  const sr = document.getElementById('summary-rooms');
+  sr.innerHTML = '';
+  ROOMS.forEach(r => {
+    const photosWithSrc = data.photos[r.id].filter(p => p.src);
+    const elemsRemplis = r.elems.filter(e => data.elems[r.id][e] !== '—' || data.obs[r.id][e]);
+    const div = document.createElement('div');
+    div.className = 'summary-room';
+    const hdr = document.createElement('div');
+    hdr.className = 'summary-room-header';
+    hdr.innerHTML = `<span>${r.name}</span><span style="font-size:12px;font-weight:400;color:var(--gray-400);">${photosWithSrc.length} photo(s) · ${elemsRemplis.length} élément(s) renseigné(s)</span>`;
+    div.appendChild(hdr);
+    if (elemsRemplis.length > 0 || photosWithSrc.length > 0) {
+      const body2 = document.createElement('div');
+      body2.className = 'summary-room-body';
+      elemsRemplis.forEach(e => {
+        const etat = data.elems[r.id][e];
+        const obs = data.obs[r.id][e];
+        const row = document.createElement('div');
+        row.className = 'summary-elem-row';
+        row.innerHTML = `<span class="summary-elem-name">${e}</span><span class="summary-elem-right"><span class="badge ${BADGE_CLASS[etat]}">${etat}</span><span class="summary-obs">${obs}</span></span>`;
+        body2.appendChild(row);
+      });
+      if (photosWithSrc.length > 0) {
+        const prow = document.createElement('div');
+        prow.className = 'photo-thumb-row';
+        photosWithSrc.forEach(p => {
+          const img = document.createElement('img');
+          img.src = p.src; img.className = 'photo-thumb';
+          img.title = p.caption || '';
+          prow.appendChild(img);
+        });
+        body2.appendChild(prow);
+      }
+      if (data.notes[r.id]) {
+        const notediv = document.createElement('div');
+        notediv.style = 'font-size:12px;color:var(--gray-500);padding:8px 0;border-top:1px solid var(--gray-100);';
+        notediv.textContent = 'Notes : ' + data.notes[r.id];
+        body2.appendChild(notediv);
+      }
+      div.appendChild(body2);
+    }
+    sr.appendChild(div);
+  });
+}
+
+function exportPDF() {
+  renderSummary();
+  window.print();
+}
+
+// Init
+document.getElementById('date_edl').valueAsDate = new Date();
+const now = new Date();
+document.getElementById('heure_edl').value = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+renderRooms();
+</script>
+</body>
+</html>
