@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>État des lieux avant travaux</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #1a56db; --blue-light: #e8f0fe;
+    --green: #16a34a; --green-light: #dcfce7;
+    --g50: #f9fafb; --g100: #f3f4f6; --g200: #e5e7eb;
+    --g300: #d1d5db; --g400: #9ca3af; --g500: #6b7280;
+    --g600: #4b5563; --g700: #374151; --g900: #111827;
+    --font: 'DM Sans', sans-serif;
+  }
+  html, body { font-family: var(--font); background: var(--g100); color: var(--g900); }
+  .topbar { position: sticky; top: 0; z-index: 100; background: var(--blue); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+  .topbar-title { font-size: 16px; font-weight: 600; color: white; }
+  .topbar-step { font-size: 12px; color: rgba(255,255,255,.7); }
+  .progress { height: 4px; background: rgba(255,255,255,.3); }
+  .progress-fill { height: 4px; background: white; transition: width .4s; }
+  .step { display: none; padding: 16px 16px 100px; max-width: 700px; margin: 0 auto; }
+  .step.active { display: block; }
+  .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .card-title { font-size: 12px; font-weight: 600; color: var(--blue); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--g500); margin-bottom: 5px; }
+  .field input, .field textarea { width: 100%; padding: 11px 14px; font-size: 15px; border: 1.5px solid var(--g200); border-radius: 8px; background: var(--g50); color: var(--g900); font-family: var(--font); outline: none; -webkit-appearance: none; }
+  .field input:focus, .field textarea:focus { border-color: var(--blue); background: white; }
+  .field textarea { min-height: 90px; resize: vertical; line-height: 1.5; }
+  .room-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .room-scroll::-webkit-scrollbar { display: none; }
+  .room-btn { flex-shrink: 0; padding: 9px 18px; font-size: 13px; font-weight: 500; border-radius: 20px; border: 1.5px solid var(--g200); background: white; color: var(--g600); cursor: pointer; white-space: nowrap; font-family: var(--font); }
+  .room-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+  .room-btn.done { border-color: var(--green); color: var(--green); background: var(--green-light); }
+  .room-btn.active.done { background: var(--blue); color: white; border-color: var(--blue); }
+  .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .photo-cell { position: relative; border-radius: 10px; overflow: hidden; background: var(--g100); border: 2px dashed var(--g300); aspect-ratio: 4/3; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+  .photo-cell.filled { border: 2px solid var(--green); }
+  .photo-cell input[type=file] { display: none; }
+  .photo-cell img { width: 100%; height: 100%; object-fit: cover; }
+  .ph-icon { font-size: 32px; color: var(--g300); margin-bottom: 4px; }
+  .ph-txt { font-size: 12px; color: var(--g400); font-weight: 500; }
+  .ph-num { position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,.5); color: white; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+  .ph-del { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,.5); color: white; font-size: 20px; line-height: 1; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .notes-label { font-size: 12px; font-weight: 500; color: var(--g500); margin-bottom: 6px; }
+  .notes-ta { width: 100%; padding: 11px 14px; font-size: 15px; border: 1.5px solid var(--g200); border-radius: 8px; background: var(--g50); color: var(--g900); font-family: var(--font); outline: none; min-height: 100px; resize: vertical; line-height: 1.5; -webkit-appearance: none; }
+  .notes-ta:focus { border-color: var(--blue); background: white; }
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--g200); padding: 12px 20px; display: flex; gap: 10px; }
+  .btn { flex: 1; padding: 13px; font-size: 15px; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; font-family: var(--font); }
+  .btn:active { transform: scale(.97); }
+  .btn-back { background: var(--g100); color: var(--g600); flex: 0 0 60px; font-size: 18px; }
+  .btn-next { background: var(--blue); color: white; }
+  .btn-pdf { background: var(--green); color: white; }
+  .si-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .si-item { background: var(--g50); border-radius: 8px; padding: 10px 12px; }
+  .si-lbl { font-size: 11px; color: var(--g400); margin-bottom: 2px; }
+  .si-val { font-size: 14px; font-weight: 500; word-break: break-word; }
+  .sr-box { background: white; border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .sr-hdr { padding: 12px 16px; background: var(--blue-light); display: flex; justify-content: space-between; align-items: center; }
+  .sr-name { font-size: 14px; font-weight: 600; color: var(--blue); }
+  .sr-cnt { font-size: 12px; color: var(--blue); opacity: .7; }
+  .sr-body { padding: 14px 16px; }
+  .sr-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .sr-pw { display: flex; flex-direction: column; gap: 5px; }
+  .sr-pw img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 8px; border: 1px solid var(--g200); }
+  .sr-cap { font-size: 12px; color: var(--g500); background: var(--g50); padding: 5px 8px; border-radius: 5px; }
+  .sr-cap input { width: 100%; border: none; background: transparent; font-size: 12px; color: var(--g500); font-family: var(--font); outline: none; }
+  .sr-notes-lbl { font-size: 11px; font-weight: 600; color: var(--g400); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
+  .sr-notes { font-size: 13px; color: var(--g600); background: var(--g50); padding: 10px 12px; border-radius: 8px; line-height: 1.5; white-space: pre-wrap; }
+  @media print {
+    .topbar, .progress, .room-scroll, .bottom-nav, .ph-del, .ph-num { display: none !important; }
+    .step { display: block !important; padding: 0; }
+    #step1, #step2 { display: none !important; }
+    #step3 { display: block !important; }
+    body { background: white; }
+    .card, .sr-box { box-shadow: none; border: 1px solid #e5e7eb; page-break-inside: avoid; }
+    .sr-photos { grid-template-columns: 1fr 1fr; }
+    .sr-pw img { aspect-ratio: 4/3; border: 1px solid #ccc; }
+    .sr-box { page-break-inside: avoid; margin-bottom: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-title">État des lieux avant travaux</div>
+  <div class="topbar-step" id="ts">1 / 3</div>
+</div>
+<div class="progress"><div class="progress-fill" id="prog" style="width:33%"></div></div>
+
+<div class="step active" id="step1">
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">Logement</div>
+    <div class="field"><label>Adresse complète</label><input type="text" id="adresse" placeholder="ex : 12 rue des Lilas, 7000 Mons"></div>
+    <div class="field"><label>Référence dossier</label><input type="text" id="ref" placeholder="ex : EDL-2025-001"></div>
+    <div class="field"><label>Étage / Bâtiment</label><input type="text" id="etage" placeholder="ex : 2ème étage"></div>
+    <div class="field"><label>Type de travaux prévus</label><input type="text" id="travaux" placeholder="ex : Rénovation complète"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Personnes présentes</div>
+    <div class="field"><label>Nom du locataire / propriétaire</label><input type="text" id="locataire" placeholder="Nom Prénom"></div>
+    <div class="field"><label>Nom de l'intervenant</label><input type="text" id="intervenant" placeholder="Nom Prénom"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Date & heure</div>
+    <div class="field"><label>Date</label><input type="date" id="date_edl"></div>
+    <div class="field"><label>Heure</label><input type="time" id="heure_edl"></div>
+  </div>
+</div>
+
+<div class="step" id="step2">
+  <div class="room-scroll" id="room-scroll"></div>
+  <div id="room-panel"></div>
+</div>
+
+<div class="step" id="step3">
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">Informations</div>
+    <div class="si-grid" id="si-grid"></div>
+  </div>
+  <div id="sum-rooms"></div>
+</div>
+
+<div class="bottom-nav">
+  <button class="btn btn-back" id="btn-back" onclick="goBack()" style="display:none">←</button>
+  <button class="btn btn-next" id="btn-next" onclick="goNext()">Suivant →</button>
+</div>
+
+<script>
+const ROOMS=[{id:'entree',name:'Entrée / Couloir'},{id:'sejour',name:'Séjour / Salon'},{id:'cuisine',name:'Cuisine'},{id:'chambre',name:'Chambre(s)'},{id:'sdb',name:'Salle de bain'},{id:'wc',name:'WC'},{id:'cave',name:'Cave / Grenier'},{id:'ext',name:'Extérieur'}];
+const NB_PHOTOS = 8;
+let step=1, curRoom=0;
+const photos={}, notes={};
+ROOMS.forEach(r=>{
+  photos[r.id]=Array.from({length:NB_PHOTOS},()=>({}));
+  notes[r.id]='';
+});
+const g=id=>document.getElementById(id)?.value||'';
+
+function goNext(){if(step===1)goStep(2);else if(step===2)goStep(3);else exportPDF();}
+function goBack(){if(step===2)goStep(1);else if(step===3)goStep(2);}
+
+function goStep(n){
+  document.getElementById('step'+step).classList.remove('active');
+  step=n;
+  document.getElementById('step'+n).classList.add('active');
+  document.getElementById('prog').style.width=(n/3*100)+'%';
+  document.getElementById('ts').textContent=n+' / 3';
+  document.getElementById('btn-back').style.display=n>1?'block':'none';
+  const bn=document.getElementById('btn-next');
+  if(n===1){bn.textContent='Suivant →';bn.className='btn btn-next';}
+  else if(n===2){bn.textContent='Récapitulatif →';bn.className='btn btn-next';}
+  else{bn.textContent='Enregistrer en PDF';bn.className='btn btn-pdf';}
+  if(n===2)renderRooms();
+  if(n===3)renderSummary();
+  window.scrollTo(0,0);
+}
+
+function renderRooms(){
+  const sc=document.getElementById('room-scroll');
+  sc.innerHTML='';
+  ROOMS.forEach((r,i)=>{
+    const done=photos[r.id].some(p=>p.src)||notes[r.id];
+    const b=document.createElement('button');
+    b.className='room-btn'+(i===curRoom?' active':'')+(done?' done':'');
+    b.textContent=r.name;
+    b.onclick=()=>{curRoom=i;renderRooms();};
+    sc.appendChild(b);
+  });
+  renderPanel();
+}
+
+function renderPanel(){
+  const room=ROOMS[curRoom];
+  const panel=document.getElementById('room-panel');
+  panel.innerHTML='';
+  const card=document.createElement('div');card.className='card';
+  card.innerHTML=`<div class="card-title">${room.name} — ${NB_PHOTOS} photos disponibles</div>`;
+  const grid=document.createElement('div');grid.className='photo-grid';
+  for(let i=0;i<NB_PHOTOS;i++){
+    const cell=document.createElement('div');
+    cell.className='photo-cell'+(photos[room.id][i].src?' filled':'');
+    cell.id=`c-${room.id}-${i}`;
+    buildCell(cell,room.id,i);
+    grid.appendChild(cell);
+  }
+  card.appendChild(grid);
+  const nl=document.createElement('div');nl.className='notes-label';nl.textContent='Notes / Observations pour cette pièce';
+  const ta=document.createElement('textarea');ta.className='notes-ta';
+  ta.placeholder='Décrivez les dégâts, l\'état général, points importants...';
+  ta.value=notes[room.id];
+  ta.oninput=()=>{notes[room.id]=ta.value;updateBtns();};
+  card.appendChild(nl);card.appendChild(ta);
+  panel.appendChild(card);
+}
+
+function buildCell(cell,rid,i){
+  cell.innerHTML='';
+  const ph=photos[rid][i];
+  const fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.capture='environment';
+  fi.onchange=ev=>{
+    const f=ev.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=e=>{photos[rid][i]={src:e.target.result,caption:''};cell.className='photo-cell filled';buildCell(cell,rid,i);updateBtns();};
+    r.readAsDataURL(f);
+  };
+  cell.appendChild(fi);
+  if(ph.src){
+    const img=document.createElement('img');img.src=ph.src;
+    const num=document.createElement('div');num.className='ph-num';num.textContent='Photo '+(i+1);
+    const del=document.createElement('div');del.className='ph-del';del.textContent='×';
+    del.onclick=ev=>{ev.stopPropagation();photos[rid][i]={};cell.className='photo-cell';buildCell(cell,rid,i);updateBtns();};
+    cell.appendChild(img);cell.appendChild(num);cell.appendChild(del);
+    cell.onclick=()=>fi.click();
+  } else {
+    const ico=document.createElement('div');ico.className='ph-icon';ico.textContent='+';
+    const txt=document.createElement('div');txt.className='ph-txt';txt.textContent='Photo '+(i+1);
+    cell.appendChild(ico);cell.appendChild(txt);
+    cell.onclick=()=>fi.click();
+  }
+}
+
+function updateBtns(){
+  document.querySelectorAll('.room-btn').forEach((b,i)=>{
+    const r=ROOMS[i];const done=photos[r.id].some(p=>p.src)||notes[r.id];
+    b.className='room-btn'+(i===curRoom?' active':'')+(done?' done':'');
+  });
+}
+
+function renderSummary(){
+  document.getElementById('si-grid').innerHTML=`
+    <div class="si-item"><div class="si-lbl">Adresse</div><div class="si-val">${g('adresse')||'—'}</div></div>
+    <div class="si-item"><div class="si-lbl">Référence</div><div class="si-val">${g('ref')||'—'}</div></div>
+    <div class="si-item"><div class="si-lbl">Locataire</div><div class="si-val">${g('locataire')||'—'}</div></div>
+    <div class="si-item"><div class="si-lbl">Intervenant</div><div class="si-val">${g('intervenant')||'—'}</div></div>
+    <div class="si-item"><div class="si-lbl">Date</div><div class="si-val">${g('date_edl')||'—'}</div></div>
+    <div class="si-item"><div class="si-lbl">Travaux</div><div class="si-val">${g('travaux')||'—'}</div></div>
+  `;
+  const sr=document.getElementById('sum-rooms');sr.innerHTML='';
+  ROOMS.forEach(r=>{
+    const pOk=photos[r.id].filter(p=>p.src);const n=notes[r.id];
+    if(!pOk.length&&!n)return;
+    const div=document.createElement('div');div.className='sr-box';
+    div.innerHTML=`<div class="sr-hdr"><span class="sr-name">${r.name}</span><span class="sr-cnt">${pOk.length} photo(s)</span></div>`;
+    const body=document.createElement('div');body.className='sr-body';
+    if(pOk.length){
+      const g2=document.createElement('div');g2.className='sr-photos';
+      pOk.forEach(p=>{
+        const w=document.createElement('div');w.className='sr-pw';
+        const img=document.createElement('img');img.src=p.src;
+        const cap=document.createElement('div');cap.className='sr-cap';
+        const ci=document.createElement('input');ci.type='text';ci.placeholder='Légende...';ci.value=p.caption||'';
+        ci.oninput=()=>{p.caption=ci.value;};
+        cap.appendChild(ci);w.appendChild(img);w.appendChild(cap);g2.appendChild(w);
+      });
+      body.appendChild(g2);
+    }
+    if(n){
+      const nl=document.createElement('div');nl.className='sr-notes-lbl';nl.textContent='Notes';
+      const nd=document.createElement('div');nd.className='sr-notes';nd.textContent=n;
+      body.appendChild(nl);body.appendChild(nd);
+    }
+    div.appendChild(body);sr.appendChild(div);
+  });
+}
+
+function exportPDF(){renderSummary();setTimeout(()=>window.print(),300);}
+
+document.getElementById('date_edl').valueAsDate=new Date();
+const now=new Date();
+document.getElementById('heure_edl').value=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+</script>
+</body>
+</html>
